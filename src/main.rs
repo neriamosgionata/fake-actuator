@@ -36,14 +36,16 @@ async fn main() -> Result<()> {
         return Ok(());
     }
 
-    let actuator_id = new_actuator.parse::<i32>().unwrap();
+    let _actuator_id = new_actuator.parse::<i32>().unwrap();
 
-    run_server(actuator_id, actuator_port).await;
+    run_server(actuator_port).await;
 
     Ok(())
 }
 
-async fn run_server(actuator_id: i32, actuator_port: i16) {
+async fn run_server(actuator_port: i16) {
+    println!("Running server");
+
     let address = "127.0.0.1:".to_owned() + actuator_port.to_string().as_str();
 
     let mut server = Server::new(address).unwrap();
@@ -52,11 +54,11 @@ async fn run_server(actuator_id: i32, actuator_port: i16) {
         |request| async move {
             let request_ref = &request;
 
-            callback(request_ref, actuator_id).await;
+            let payload = callback(request_ref).await;
 
             match request.response {
                 Some(mut message) => {
-                    message.message.payload = b"Ok".to_vec();
+                    message.message.payload = payload.as_bytes().to_vec();
 
                     Some(message)
                 }
@@ -68,9 +70,7 @@ async fn run_server(actuator_id: i32, actuator_port: i16) {
         .expect("Failed to create server");
 }
 
-async fn callback(request: &CoapRequest<SocketAddr>, actuator_id: i32) -> String {
-    let url_change_state = "coap://127.0.0.1:5683/actuator/state";
-
+async fn callback(request: &CoapRequest<SocketAddr>) -> String {
     println!("Callback called");
 
     let payload = String::from_utf8(request.message.payload.clone()).unwrap();
@@ -84,32 +84,12 @@ async fn callback(request: &CoapRequest<SocketAddr>, actuator_id: i32) -> String
 
     if payload == "ON" {
         println!("ON");
-
-        let change_state_params = json! {
-            {
-                "id": actuator_id,
-                "state": true
-            }
-        }.to_string().as_bytes().to_vec();
-
-        let response_state = CoAPClient::post(url_change_state, change_state_params).unwrap();
-        String::from_utf8(response_state.message.payload).unwrap();
+        "ON".to_string()
     } else if payload == "OFF" {
         println!("OFF");
-
-        let change_state_params = json! {
-            {
-                "id": actuator_id,
-                "state": false
-            }
-        }.to_string().as_bytes().to_vec();
-
-        let response_state = CoAPClient::post(url_change_state, change_state_params).unwrap();
-        String::from_utf8(response_state.message.payload).unwrap();
+        "OFF".to_string()
     } else {
         println!("Unknown command");
-        return "KO".to_string();
+        "KO".to_string()
     }
-
-    "OK".to_string()
 }
