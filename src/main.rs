@@ -77,7 +77,7 @@ async fn run_server(actuator_ip_address: String, actuator_port: i16) {
 
             let payload = callback(request_ref).await;
 
-            println!("New state: {}", payload);
+            println!("State: {}", payload);
 
             match request.response {
                 Some(mut message) => {
