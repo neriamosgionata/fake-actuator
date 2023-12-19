@@ -10,6 +10,7 @@ async fn main() -> Result<()> {
     let url_register = "coap://127.0.0.1:5683/actuator/register";
 
     let mut actuator_ip_address = String::new();
+    let actuator_port = 5684i16;
 
     match local_ip() {
         Ok(ip) => {
@@ -22,7 +23,8 @@ async fn main() -> Result<()> {
 
     let register_params = json! {
         {
-            "ip_address": actuator_ip_address
+            "ip_address": actuator_ip_address,
+            "port": actuator_port,
         }
     }.to_string().as_bytes().to_vec();
 
@@ -36,13 +38,13 @@ async fn main() -> Result<()> {
 
     let actuator_id = new_actuator.parse::<i32>().unwrap();
 
-    run_server(actuator_id).await;
+    run_server(actuator_id, actuator_port).await;
 
     Ok(())
 }
 
-async fn run_server(actuator_id: i32) {
-    let address = "127.0.0.1:5684";
+async fn run_server(actuator_id: i32, actuator_port: i16) {
+    let address = "127.0.0.1:".to_owned() + actuator_port.to_string().as_str();
 
     let mut server = Server::new(address).unwrap();
 
@@ -90,8 +92,8 @@ async fn callback(request: &CoapRequest<SocketAddr>, actuator_id: i32) -> String
             }
         }.to_string().as_bytes().to_vec();
 
-        let response_register = CoAPClient::post(url_change_state, change_state_params).unwrap();
-        String::from_utf8(response_register.message.payload).unwrap();
+        let response_state = CoAPClient::post(url_change_state, change_state_params).unwrap();
+        String::from_utf8(response_state.message.payload).unwrap();
     } else if payload == "OFF" {
         println!("OFF");
 
@@ -102,8 +104,8 @@ async fn callback(request: &CoapRequest<SocketAddr>, actuator_id: i32) -> String
             }
         }.to_string().as_bytes().to_vec();
 
-        let response_register = CoAPClient::post(url_change_state, change_state_params).unwrap();
-        String::from_utf8(response_register.message.payload).unwrap();
+        let response_state = CoAPClient::post(url_change_state, change_state_params).unwrap();
+        String::from_utf8(response_state.message.payload).unwrap();
     } else {
         println!("Unknown command");
         return "KO".to_string();
