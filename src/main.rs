@@ -57,8 +57,6 @@ async fn main() -> Result<()> {
 
     write(".status", if register_response.state { "ON" } else { "OFF" }).expect("Unable to write file");
 
-    println!("Actuator state: {:?}", if register_response.state { "ON" } else { "OFF" });
-
     spawn(move || {
         loop {
             let time = read_to_string(".time").unwrap_or_else(|_| "0".to_string());
@@ -123,10 +121,8 @@ async fn run_server(actuator_ip_address: String, actuator_port: i16) {
 }
 
 async fn callback(request: &CoapRequest<SocketAddr>) -> String {
-    println!("Callback called");
 
     if request.get_method() != &RequestType::Post && request.get_method() != &RequestType::Get {
-        println!("Unknown method");
         return "KO".to_string();
     }
 
@@ -135,8 +131,6 @@ async fn callback(request: &CoapRequest<SocketAddr>) -> String {
     }
 
     let payload = String::from_utf8(request.message.payload.clone()).unwrap();
-
-    println!("POST request");
 
     if payload == "ON" {
         match write(".status", "ON") {
@@ -165,7 +159,6 @@ async fn callback(request: &CoapRequest<SocketAddr>) -> String {
         };
         "OFF".to_string()
     } else {
-        println!("Unknown command");
         "KO".to_string()
     }
 }
