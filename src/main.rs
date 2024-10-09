@@ -16,10 +16,10 @@ struct RegisterResponse {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let url_register = "coap://127.0.0.1:5683/actuator/register";
+    let url_register = "coap://127.0.0.1:8683/actuator/register";
 
     let mut actuator_ip_address = String::new();
-    let actuator_port = 5684i16;
+    let actuator_port = 8684i16;
 
     match local_ip() {
         Ok(ip) => {
