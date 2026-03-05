@@ -19,7 +19,11 @@ async fn main() -> Result<()> {
     let url_register = "coap://127.0.0.1:8683/actuator/register";
 
     let mut actuator_ip_address = String::new();
-    let actuator_port = 8684i16;
+    let actuator_port: i16 = std::env::args()
+        .nth(1)
+        .unwrap_or_else(|| "8684".to_string())
+        .parse()
+        .expect("Invalid port number");
 
     match local_ip() {
         Ok(ip) => {
