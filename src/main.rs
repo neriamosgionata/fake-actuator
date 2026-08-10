@@ -100,6 +100,9 @@ async fn main() -> Result<()> {
             "state": false,
             "pulse": is_pulse,
             "port": actuator_port,
+            "intermittent": false,
+            "intermittent_on_ms": 1000,
+            "intermittent_off_ms": 1000,
         }
     }.to_string().as_bytes().to_vec();
 
